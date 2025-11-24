@@ -1,17 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 import { ProcessStep } from "../types";
 
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-// Assume this variable is pre-configured, valid, and accessible.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateStepDetails = async (step: ProcessStep): Promise<string> => {
   const modelId = "gemini-2.5-flash";
   
-  if (!process.env.API_KEY) {
-    return "Error: API Key is missing. Please configure API_KEY in your environment.";
-  }
-
   const systemInstruction = `
     You are an expert Sourcing Agent for Material Handling Equipment (MHE).
     Product Scope: Pallet Trucks (Hand/Electric), Pallet Stackers, Oil Drum Trucks/Stackers, and Forklifts.
@@ -43,17 +37,18 @@ export const generateStepDetails = async (step: ProcessStep): Promise<string> =>
       contents: prompt,
       config: {
         systemInstruction: systemInstruction,
-        temperature: 0.5,
+        temperature: 0.5, // Lower temperature for more direct/factual output
       }
     });
 
     return response.text || "No details available.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Failed to retrieve expert advice. Check API Key configuration.";
+    throw new Error("Failed to retrieve expert advice. Please check your connection or API key.");
   }
 };
 
+// Helper to tailor the prompt for each specific step of the cycle
 function getStepSpecificPrompts(id: number): string {
   switch (id) {
     case 1: // Products Request
